@@ -92,10 +92,12 @@ public class Server {
             try{
             	DataOutputStream dos = new DataOutputStream(sendToSocket.getOutputStream());
           		FileInputStream fis = new FileInputStream(file);
+          		while (true) {
 				byte[] buffer = new byte[sizeBuffered];
-          		while (fis.read(buffer) > 0) {
-          			dos.write(buffer);
-          			//System.out.println(buffer.length);
+				if(fis.read(buffer) > 0){
+          				dos.write(buffer)
+				}
+				else break;
           		}
           		fis.close();
           		System.out.println("ok");
