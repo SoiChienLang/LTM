@@ -24,10 +24,9 @@ public class Client1 {
         // TODO code application logic here
         Scanner inp = new Scanner(System.in);
 
-        int port;
-        System.out.println("nhập port để kết nối server");
-        port = inp.nextInt();
-        Socket s = new Socket("localhost", port);
+        int port=12345;
+        
+        Socket s = new Socket("127.0.0.1", port);
         System.out.println("conneced" + s);
 
         DataInputStream is = new DataInputStream(s.getInputStream());
@@ -43,8 +42,8 @@ public class Client1 {
             // dong ket noi vs server
             s.close();
             // mo socket moi ket noi voi PC1
-            int Prot = inp.nextInt();
-            Socket socket = new Socket(x,Prot);
+            int Port = 12345;
+            Socket socket = new Socket(x,Port);
             System.out.println("conneced "+ socket);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
@@ -54,7 +53,6 @@ public class Client1 {
             // luu file
             
              byte[] data = new byte[180000];
-                    fileSize = dis.readInt();
                     int byteRead=0;
                     int current = 0;
                 File    file = new File("Download Folder\\" + filename);
