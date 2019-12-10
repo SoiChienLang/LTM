@@ -40,8 +40,8 @@ public class JAVA_Client {
      */
     
     
-    public final static int SOCKET_PORT = 56789;
-    public final static String SERVER = "192.168.1.188";
+    public final static int SOCKET_PORT = 12345;
+    public final static String SERVER = "127.0.0.1";
     
     public static void main(String[] args) throws InterruptedException {
         PipedInputStream pipeIn;
@@ -78,8 +78,8 @@ class Thread_Receive_Data extends Thread{
             String filename;
             int fileSize;
             
-            filename = dis.readLine();
-            fileSize = dis.readInt();
+            filename = dis.readLine();System.out.println(filename);
+            fileSize = dis.readInt();System.out.println(fileSize);
             
             FileOutputStream fos = new FileOutputStream(filename);
             DataOutputStream dos = new DataOutputStream(pipeOut);
@@ -89,10 +89,14 @@ class Thread_Receive_Data extends Thread{
             byte[] data = new byte[1024];
             int byteRead, current = 0;
             do{
-                byteRead = is.read(data);
+                byteRead = dis.read(data);
+                System.out.println(byteRead);
                 fos.write(data, 0, byteRead);
-                pipeOut.write(data, 0, byteRead);
+                System.out.println("Write to file " + byteRead);
+//                pipeOut.write(data, 0, byteRead);
+//                System.out.println("Write to other threads");
                 if(byteRead >=0) current += byteRead;
+                                                                                
             }while(current != fileSize);
             fos.flush();
             pipeOut.flush();
