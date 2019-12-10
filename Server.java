@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server {
 	private static ServerSocket listener=null;
@@ -14,8 +16,7 @@ public class Server {
 	private static String IpClient=null;
 	public static void main(String args[])throws IOException{
 		try {
-			listener=new ServerSocket(7777);
-			System.out.println(listener.getInetAddress().getHostAddress());
+			listener=new ServerSocket(12345);
 		}catch (IOException e) {
 			System.out.println(e);
 			System.exit(1);
@@ -54,58 +55,73 @@ public class Server {
 		}
 		@Override
 		public void run() {
-			try {
-		        bWrite = new BufferedWriter(new OutputStreamWriter(this.socketReceive.getOutputStream()));;
-				if(isNewServer==true) {
-					sc = new Scanner(System.in);
-					System.out.println("name file:");
-					String file =sc.nextLine();
-					System.out.println(System.getProperty("user.dir")+Folder+file);
-					if(!(new File(System.getProperty("user.dir")+Folder+file)).exists()) {
-						System.out.println("File is not exist");
-					}
-					else {
-						File fileSend=new File(System.getProperty("user.dir")+Folder+file);
-						
-						bWrite.write(file);
-	                    bWrite.newLine();
-	                    bWrite.flush();
-	                    
-	                    bWrite.write((int)fileSend.length());
-	                    bWrite.newLine();
-	                    bWrite.flush();
-	                    
-	                    sendFile(this.socketReceive, fileSend);
-					}
-				}
-				else {
-					bWrite.write(IpClient);
-                    bWrite.newLine();
-                    bWrite.flush();
-				}
-			}catch (Exception e) {
-				System.out.println(e);
-				e.printStackTrace();
-			}
+                    try {
+                        DataOutputStream dos = new DataOutputStream(socketReceive.getOutputStream());
+                        bWrite = new BufferedWriter(new OutputStreamWriter(this.socketReceive.getOutputStream()));;
+                            if(isNewServer==true) {
+                                sc = new Scanner(System.in);
+                                System.out.println("name file:");
+                                String file =sc.nextLine();
+                                
+                                if(!(new File(System.getProperty("user.dir")+Folder+file)).exists()) {
+                                        System.out.println("File is not exist");
+                                }
+                                else {
+                                    System.out.println(System.getProperty("user.dir")+Folder+file);
+                                    File fileSend=new File(System.getProperty("user.dir")+Folder+file);
+                                    int fileSize = (int) fileSend.length();                     System.out.println(fileSize);
+                                    bWrite.write(file);                                         System.out.println(file);
+                                    bWrite.newLine();
+                                    bWrite.flush();
+
+                                    dos.writeInt(fileSize);
+                                    dos.flush();
+                                                                                                System.out.println("Send header done");
+                                    sendFile(this.socketReceive, fileSend);
+                                }
+                            }
+                                else {
+                                    bWrite.write(IpClient);
+                                    bWrite.newLine();
+                                    bWrite.flush();
+                            }
+                    }catch (Exception e) {
+                            System.out.println(e);
+                            e.printStackTrace();
+                    }
 		}
 		private static boolean sendFile(Socket sendToSocket,File file) throws IOException {
-            try{
-            	DataOutputStream dos = new DataOutputStream(sendToSocket.getOutputStream());
-          		FileInputStream fis = new FileInputStream(file);
-          		while (true) {
-				byte[] buffer = new byte[sizeBuffered];
-				if(fis.read(buffer) > 0){
-          				dos.write(buffer)
-				}
-				else break;
-          		}
-          		fis.close();
-          		System.out.println("ok");
-          		return true;
-            }catch (Exception e) {
-            	System.out.println(e);
-            	return false;
-			}
-	     }
+                    try{
+                        DataOutputStream dos = new DataOutputStream(sendToSocket.getOutputStream());
+                            FileInputStream fis = new FileInputStream(file);
+                            byte[] data = new byte[sizeBuffered];
+                            
+                                                                                System.out.println("Start transfer file...");
+                                                                                
+                            int fileSize = (int ) file.length(), current = 0;
+                            int byteRead;
+                            do{
+                                byteRead = fis.read(data);
+                                dos.write(data, 0, byteRead);
+                                dos.flush();
+                                if(byteRead >= 0) current+=byteRead;
+                            }while(current != fileSize);
+                            System.out.println("ok");
+//                            while (true) {
+//                                byte[] buffer = new byte[sizeBuffered];
+//                                if(fis.read(buffer) > 0){
+//                                        dos.write(buffer);
+//                                }
+//                                else break;
+//                            }
+                                                                                System.out.println("Transfer Done");
+                            fis.close();
+                            
+                            return true;
+                    }catch (Exception e) {
+                        Logger.getLogger(ServiceThread.class.getName()).log(Level.SEVERE, null, e);
+                        return false;
+                    }
+                }
 	}
 }
