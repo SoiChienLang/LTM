@@ -33,7 +33,7 @@ import java.util.Scanner;
  *
  * @author Soi's
  */
-public class JAVA_Client {
+public class Client_1 {
 
     /**
      * @param args the command line arguments
@@ -54,10 +54,10 @@ public class JAVA_Client {
             
             Thread_Receive_Data sock_receiv = new Thread_Receive_Data(pipeOut);
             sock_receiv.start();
-            
-            
+            Thread_Send_Data sock_send = new Thread_Send_Data(pipeIn);
+            sock_send.start();
         } catch (IOException ex) {
-            Logger.getLogger(JAVA_Client.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Client_1.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
@@ -72,7 +72,7 @@ class Thread_Receive_Data extends Thread{
     @Override
     public void run(){
         try {
-            socket = new Socket(JAVA_Client.SERVER, JAVA_Client.SOCKET_PORT);
+            socket = new Socket(Client_1.SERVER, Client_1.SOCKET_PORT);
             is = socket.getInputStream();
             DataInputStream dis = new DataInputStream(is);
             String filename;
@@ -90,21 +90,21 @@ class Thread_Receive_Data extends Thread{
             int byteRead, current = 0;
             do{
                 byteRead = dis.read(data);
-                System.out.println(byteRead);
                 fos.write(data, 0, byteRead);
                 System.out.println("Write to file " + byteRead);
-//                pipeOut.write(data, 0, byteRead);
-//                System.out.println("Write to other threads");
+                pipeOut.write(data, 0, byteRead);
+                System.out.println("Write to other threads");
                 if(byteRead >=0) current += byteRead;
                                                                                 
             }while(current != fileSize);
+            System.out.println("Write to file done");
             fos.flush();
             pipeOut.flush();
             dis.close();
             is.close();
             socket.close();
             dos.close();
-            
+            pipeOut.close();
         } catch (IOException ex) {
             Logger.getLogger(Thread_Receive_Data.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -121,18 +121,18 @@ class Thread_Send_Data extends Thread{
     @Override
     public void run() {
         try {
-            server = new ServerSocket(12345);
+            server = new ServerSocket(23456);
             int fileSize;
             String fileName;
             dis = new DataInputStream(pipeIn);
-            fileName = dis.readUTF();
-            fileSize = dis.readInt();
+            fileName = dis.readUTF();System.out.println("Thread send: " + fileName);
+            fileSize = dis.readInt();System.out.println("Thread send: " + fileSize);
             
-            Socket sock_to_pc2 = server.accept();
-            Socket sock_to_pc3 = server.accept();
+            Socket sock_to_pc2 = server.accept();System.out.println("Client: " + sock_to_pc2.getLocalAddress().getHostAddress());
+//            Socket sock_to_pc3 = server.accept();
             
             send_header_to_socket(sock_to_pc2, fileName, fileSize);
-            send_header_to_socket(sock_to_pc3, fileName, fileSize);
+//            send_header_to_socket(sock_to_pc3, fileName, fileSize);
             
             
             byte[] data = new byte[1024];
@@ -140,11 +140,11 @@ class Thread_Send_Data extends Thread{
             do{
                 byteRead = pipeIn.read(data);
                 send_data_to_socket(sock_to_pc2, data, byteRead);
-                send_data_to_socket(sock_to_pc3, data, byteRead);
+//                send_data_to_socket(sock_to_pc3, data, byteRead);
                 
                 if(byteRead >= 0) current += byteRead;
             }while(current != fileSize);
-            
+            System.out.println("Send done");
             
         } catch (IOException ex) {
             Logger.getLogger(Thread_Send_Data.class.getName()).log(Level.SEVERE, null, ex);
