@@ -29,7 +29,7 @@ public class Server {
                 Socket socket = listener.accept();
                 send_signal(socket, SIGNAL);
                 if(SIGNAL == 1)
-                    IpClient = socket.getLocalAddress().getHostAddress();
+                    IpClient = socket.getInetAddress().getHostAddress();
                 ServiceThread service_thread = new ServiceThread(socket, SIGNAL);
                 service_thread.start();
                 SIGNAL = 0;
